@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import useLocalStorage from "use-local-storage";
+import { SpeedInsights } from "@vercel/speed-insights/react";
 
 type Item = {
   id: number;
@@ -150,7 +151,6 @@ const App: React.FC = () => {
       <h1 className="text-2xl font-bold mb-6 text-center text-blue-800">
         Replacement Tracker Dashboard
       </h1>
-
       {/* Add new item form */}
       <div className="mb-8 p-4 bg-gray-50 rounded-lg shadow">
         <h2 className="text-lg font-semibold mb-4">Add New Item</h2>
@@ -211,7 +211,6 @@ const App: React.FC = () => {
           </button>
         </div>
       </div>
-
       {/* Filters and sorting */}
       <div className="flex justify-between mb-4">
         <div className="flex items-center space-x-2">
@@ -241,7 +240,6 @@ const App: React.FC = () => {
           </select>
         </div>
       </div>
-
       {/* Items list */}
       <div className="space-y-3">
         {sortedItems.length === 0 ? (
@@ -309,6 +307,7 @@ const App: React.FC = () => {
           })
         )}
       </div>
+      <SpeedInsights /> {/* <-- Add this just before the closing div */}
     </div>
   );
 };
