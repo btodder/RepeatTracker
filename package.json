@@ -9,6 +9,7 @@
   ],
   "main": "src/index.tsx",
   "dependencies": {
+    "@vercel/speed-insights": "^1.2.0",
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "scheduler": "^0.26.0",
