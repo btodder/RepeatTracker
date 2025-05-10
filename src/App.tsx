@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import useLocalStorage from "./useLocalStorage";
+import useLocalStorage from "use-local-storage";
 
 type Item = {
   id: number;
