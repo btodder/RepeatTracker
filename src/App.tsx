@@ -68,7 +68,6 @@ return (
 */
 
 const App: React.FC = () => {
-  const [dark, setDark] = useDarkMode();
   const [items, setItems] = useLocalStorage<Item[]>("replacement-items", []);
   const [name, setName] = useState("");
   const [interval, setInterval] = useState(30);
