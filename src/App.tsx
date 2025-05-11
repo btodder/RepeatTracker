@@ -53,7 +53,7 @@ const App: React.FC = () => {
   const [items, setItems] = useLocalStorage<Item[]>("replacement-items", []);
   const [name, setName] = useState("");
   const [interval, setInterval] = useState(30);
-  const [category, setCategory] = useState(categories[0]);
+  const [category, setCategory] = useState("None");
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editName, setEditName] = useState<string>("");
 
@@ -87,7 +87,7 @@ const App: React.FC = () => {
     ]);
     setName("");
     setInterval(30);
-    setCategory(categories[0]);
+    setCategory("None");
   };
 
   // Replace now
@@ -272,7 +272,7 @@ const App: React.FC = () => {
       <form onSubmit={handleAdd} style={{ margin: 0 }}>
         <div className="input-row">
           <input
-            placeholder="Item name"
+            placeholder="Item"
             value={name}
             onChange={(e) => setName(e.target.value)}
             maxLength={40}
@@ -284,12 +284,9 @@ const App: React.FC = () => {
             value={interval}
             onChange={(e) => setInterval(Number(e.target.value))}
             required
-            placeholder="days"
+            placeholder="Interval (days)"
           />
-          <select
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-          >
+          <select value={category} onChange={(e) => setCategory(e.target.value)}>
             {categories.map((cat) => (
               <option key={cat}>{cat}</option>
             ))}
@@ -563,6 +560,68 @@ const App: React.FC = () => {
           );
         })}
       </div>
+
+      {/* Delete Modal */}
+      {deleteId !== null && (
+        <div className="modal-overlay">
+          <div className="modal-dialog">
+            <div style={{ marginBottom: "1.5rem" }}>
+              Are you sure you want to delete this item?
+            </div>
+            <button
+              style={{ marginRight: "1rem" }}
+              className="replace-btn"
+              onClick={() => handleDelete(deleteId)}
+            >
+              Yes, Delete
+            </button>
+            <button className="replace-btn" onClick={() => setDeleteId(null)}>
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Calendar Modal */}
+      {calendarId !== null && (
+        <div className="modal-overlay">
+          <div className="modal-dialog">
+            <div style={{ marginBottom: "1rem" }}>
+              <div>
+                <label>
+                  Last replaced:{" "}
+                  <input
+                    type="date"
+                    value={calendarLastDate}
+                    onChange={handleCalendarLastChange}
+                  />
+                </label>
+              </div>
+              <div style={{ marginTop: "1rem" }}>
+                <label>
+                  Next replacement:{" "}
+                  <input
+                    type="date"
+                    value={calendarNextDate}
+                    onChange={handleCalendarNextChange}
+                  />
+                </label>
+              </div>
+            </div>
+            <button
+              style={{ marginRight: "1rem" }}
+              className="replace-btn"
+              onClick={() => handleCalendarSave(calendarId)}
+            >
+              Save
+            </button>
+            <button className="replace-btn" onClick={handleCalendarCancel}>
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
       <SpeedInsights />
     </div>
   );

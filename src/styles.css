@@ -40,7 +40,7 @@ html {
   min-height: 100vh;
   margin: 0;
   padding: 0;
-  font-family: "Segoe UI", "Roboto", Arial, sans-serif;
+  font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
   background: var(--color-background);
   color: var(--color-text);
   transition: background 0.3s, color 0.3s;
@@ -93,11 +93,10 @@ html {
 }
 
 /* Card/panel for modern look */
-.panel,
-.card {
+.panel, .card {
   background: var(--color-card);
   border-radius: 12px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.05);
   padding: 2rem;
   margin: 0 auto 2rem auto;
   max-width: 600px;
@@ -181,4 +180,79 @@ body.dark-mode .icon-btn {
 body.dark-mode .icon-btn:hover,
 body.dark-mode .icon-btn:focus {
   background: var(--color-btn-bg-hover);
+  color: var(--color-btn-text);
+}
+
+/* Replace button styled as icon button */
+.replace-btn {
+  height: 2.5rem;
+  min-width: 2.5rem;
+  padding: 0 1.1rem;
+  border-radius: 7px;
+  background: var(--color-btn-bg);
+  color: var(--color-btn-text);
+  font-weight: 600;
+  border: none;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s, color 0.2s;
+}
+
+body.dark-mode .replace-btn {
+  background: var(--color-btn-bg);
+  color: var(--color-btn-text);
+}
+
+.replace-btn:hover,
+.replace-btn:focus {
+  background: var(--color-btn-bg-hover);
+  color: var(--color-btn-border);
+  outline: none;
+}
+
+/* Modal overlay and dialog */
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+.modal-dialog {
+  background: var(--color-modal-bg);
+  color: var(--color-modal-text);
+  border-radius: 10px;
+  padding: 2rem 1.5rem;
+  min-width: 320px;
+  max-width: 90vw;
+  box-shadow: 0 2px 24px rgba(0,0,0,0.25);
+  text-align: center;
+}
+
+/* Calendar cancel button */
+.calendar-cancel-btn {
+  background: none;
+  border: none;
+  color: inherit;
+  font-size: 1rem;
+  padding: 0.5rem 1rem;
+  border-radius: 7px;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.calendar-cancel-btn:hover,
+.calendar-cancel-btn:focus {
+  background: #ededed;
+  color: #111;
+}
+
+body.dark-mode .calendar-cancel-btn:hover,
+body.dark-mode .calendar-cancel-btn:focus {
+  background: #222;
+  color: #fff;
 }
