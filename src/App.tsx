@@ -2,6 +2,20 @@ import React, { useState } from "react";
 import useLocalStorage from "use-local-storage";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 
+// Dark mode hook (simple version)
+function useDarkMode() {
+  const [dark, setDark] = useState(
+    () =>
+      window.matchMedia &&
+      window.matchMedia("(prefers-color-scheme: dark)").matches
+  );
+  React.useEffect(() => {
+    document.body.classList.toggle("dark-mode", dark);
+    document.body.classList.toggle("light-mode", !dark);
+  }, [dark]);
+  return [dark, setDark] as const;
+}
+
 type Item = {
   id: number;
   name: string;
@@ -10,7 +24,7 @@ type Item = {
   category: string;
 };
 
-const categories = ["Appliances", "Car", "Home", "Personal", "Tech", "Other"];
+const categories = ["Hygiene", "Expiration", "Performance", "None"];
 
 function calculateDaysLeft(lastReplaced: string, interval: number) {
   const last = new Date(lastReplaced);
@@ -27,10 +41,16 @@ function calculateNextDate(lastReplaced: string, interval: number) {
   return last.toLocaleDateString();
 }
 
-function getStatusColor(daysLeft: number) {
-  if (daysLeft < 0) return "border-red-600 bg-red-50";
-  if (daysLeft <= 7) return "border-yellow-500 bg-yellow-50";
-  return "border-green-600 bg-green-50";
+function getStatusColor(daysLeft: number, dark: boolean) {
+  if (daysLeft < 0)
+    return dark ? "border-red-500 bg-red-900/40" : "border-red-600 bg-red-50";
+  if (daysLeft <= 7)
+    return dark
+      ? "border-yellow-500 bg-yellow-900/40"
+      : "border-yellow-500 bg-yellow-50";
+  return dark
+    ? "border-green-500 bg-green-900/40"
+    : "border-green-600 bg-green-50";
 }
 
 const App: React.FC = () => {
@@ -40,11 +60,15 @@ const App: React.FC = () => {
   const [category, setCategory] = useState(categories[0]);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editName, setEditName] = useState<string>("");
-
-  // For calendar (date picker)
   const [calendarId, setCalendarId] = useState<number | null>(null);
   const [calendarLastDate, setCalendarLastDate] = useState<string>("");
   const [calendarNextDate, setCalendarNextDate] = useState<string>("");
+
+  // Delete modal state
+  const [deleteId, setDeleteId] = useState<number | null>(null);
+
+  // Dark mode
+  const [dark, setDark] = useDarkMode();
 
   // Add new item
   const handleAdd = (e: React.FormEvent) => {
@@ -76,9 +100,10 @@ const App: React.FC = () => {
     );
   };
 
-  // Delete item
+  // Delete item (after confirmation)
   const handleDelete = (id: number) => {
     setItems(items.filter((item) => item.id !== id));
+    setDeleteId(null);
   };
 
   // Edit (rename) logic
@@ -174,17 +199,26 @@ const App: React.FC = () => {
   });
 
   return (
-    <div className="max-w-4xl mx-auto p-4 font-sans">
-      <h1 className="text-2xl font-bold mb-6 text-center text-blue-800">
-        Maintner App
-      </h1>
+    <div className="max-w-3xl mx-auto p-4 font-sans min-h-screen">
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+          Replacement Tracker
+        </h1>
+        <button
+          className="rounded-full px-3 py-1 border bg-gray-100 dark:bg-gray-800 border-gray-300 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition"
+          onClick={() => setDark((d) => !d)}
+          aria-label="Toggle dark mode"
+        >
+          {dark ? "🌙" : "☀️"}
+        </button>
+      </div>
 
       <form
         onSubmit={handleAdd}
         className="flex flex-col sm:flex-row gap-2 mb-8 items-center justify-center"
       >
         <input
-          className="border rounded px-3 py-2 flex-1"
+          className="border rounded px-3 py-2 flex-1 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
           placeholder="Item name"
           value={name}
           onChange={(e) => setName(e.target.value)}
@@ -192,16 +226,16 @@ const App: React.FC = () => {
           required
         />
         <input
-          className="border rounded px-3 py-2 w-28"
+          className="border rounded px-3 py-2 w-24 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
           type="number"
           min={1}
           value={interval}
           onChange={(e) => setInterval(Number(e.target.value))}
           required
         />
-        <span className="text-gray-600 text-sm">days</span>
+        <span className="text-gray-600 dark:text-gray-300 text-sm">days</span>
         <select
-          className="border rounded px-3 py-2"
+          className="border rounded px-3 py-2 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
           value={category}
           onChange={(e) => setCategory(e.target.value)}
         >
@@ -210,16 +244,16 @@ const App: React.FC = () => {
           ))}
         </select>
         <button
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
+          className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition font-semibold"
           type="submit"
         >
           Add
         </button>
       </form>
 
-      <div className="space-y-8">
+      <div className="space-y-10">
         {(sortedItems ?? []).length === 0 && (
-          <div className="text-center text-gray-400">
+          <div className="text-center text-gray-400 dark:text-gray-500">
             No items yet. Add something to track!
           </div>
         )}
@@ -232,19 +266,20 @@ const App: React.FC = () => {
             item.lastReplaced,
             item.replacementInterval
           );
-          const statusColor = getStatusColor(daysLeft);
+          const statusColor = getStatusColor(daysLeft, dark);
 
           return (
             <React.Fragment key={item.id}>
               <div
-                className={`border-l-4 rounded shadow p-4 ${statusColor} flex flex-col sm:flex-row sm:items-center sm:justify-between`}
+                className={`border-l-4 rounded-xl shadow-md px-6 py-5 ${statusColor} flex flex-col gap-2`}
+                style={{ background: dark ? "#23272f" : "#fff" }}
               >
-                <div className="mb-2 sm:mb-0">
-                  <div className="flex items-center">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
+                  <div className="flex items-center gap-3">
                     {editingId === item.id ? (
                       <>
                         <input
-                          className="border rounded px-2 py-1 text-lg mr-2"
+                          className="border rounded px-2 py-1 text-lg mr-2 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
                           value={editName}
                           onChange={handleEditChange}
                           autoFocus
@@ -254,15 +289,17 @@ const App: React.FC = () => {
                           }}
                         />
                         <button
-                          className="text-green-600 hover:text-green-800 mr-1"
+                          className="text-green-600 hover:text-green-800 mr-1 h-8 w-8 flex items-center justify-center rounded"
                           title="Save"
+                          style={{ fontSize: "1.2em" }}
                           onClick={() => handleEditSave(item.id)}
                         >
                           💾
                         </button>
                         <button
-                          className="text-gray-500 hover:text-gray-700"
+                          className="text-gray-500 hover:text-gray-700 h-8 w-8 flex items-center justify-center rounded"
                           title="Cancel"
+                          style={{ fontSize: "1.2em" }}
                           onClick={handleEditCancel}
                         >
                           ❌
@@ -270,45 +307,28 @@ const App: React.FC = () => {
                       </>
                     ) : (
                       <>
-                        <span className="font-medium text-lg">{item.name}</span>
-                        <button
-                          className="ml-1 text-blue-500 hover:text-blue-700 p-1 rounded"
-                          title="Rename"
-                          onClick={() => handleEditClick(item.id, item.name)}
-                          style={{ fontSize: "1.1em" }}
-                        >
-                          ✏️
-                        </button>
-                        <button
-                          className="ml-1 text-gray-500 hover:text-gray-700 p-1 rounded"
-                          title="Set last or next replacement date"
-                          onClick={() =>
-                            handleCalendarClick(
-                              item.id,
-                              item.lastReplaced,
-                              item.replacementInterval
-                            )
-                          }
-                          style={{ fontSize: "1.1em" }}
-                        >
-                          📅
-                        </button>
-                        <span className="ml-2 px-2 py-0.5 text-xs rounded-full bg-gray-200">
-                          {item.category}
+                        <span className="font-semibold text-lg text-gray-900 dark:text-gray-100">
+                          {item.name}
                         </span>
+                        {item.category !== "None" && (
+                          <span className="ml-1 px-2 py-0.5 text-xs rounded-full bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300">
+                            {item.category}
+                          </span>
+                        )}
                       </>
                     )}
                   </div>
-                  <div className="text-sm text-gray-600">
-                    Replace every {item.replacementInterval} days. Last
-                    replaced: {new Date(item.lastReplaced).toLocaleDateString()}
+                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                    Replace every <strong>{item.replacementInterval}</strong>{" "}
+                    days. Last replaced:{" "}
+                    {new Date(item.lastReplaced).toLocaleDateString()}
                   </div>
                 </div>
 
-                <div className="flex flex-col items-end">
-                  <div className="font-bold text-lg">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-2">
+                  <div className="font-bold text-lg text-gray-800 dark:text-gray-200">
                     {daysLeft < 0 ? (
-                      <span className="text-red-600">
+                      <span className="text-red-600 dark:text-red-400">
                         Overdue by {Math.abs(daysLeft)} days
                       </span>
                     ) : (
@@ -318,76 +338,153 @@ const App: React.FC = () => {
                       </span>
                     )}
                   </div>
-                  <div className="text-sm text-gray-600">Next: {nextDate}</div>
-                  <div className="flex space-x-2 mt-2">
-                    <button
-                      className="bg-green-600 text-white px-3 py-1 text-sm rounded hover:bg-green-700"
-                      onClick={() => handleReplace(item.id)}
-                    >
-                      Replace Now
-                    </button>
-                    <button
-                      className="bg-red-600 text-white px-3 py-1 text-sm rounded hover:bg-red-700"
-                      onClick={() => handleDelete(item.id)}
-                    >
-                      Delete
-                    </button>
+                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-2 sm:mb-0">
+                    Next: {nextDate}
+                  </div>
+                  {/* Action buttons row */}
+                  <div className="flex flex-row gap-2 items-center">
+                    {/* Edit */}
+                    {editingId !== item.id && (
+                      <button
+                        className="h-8 w-8 flex items-center justify-center rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition"
+                        title="Rename"
+                        aria-label="Edit"
+                        onClick={() => handleEditClick(item.id, item.name)}
+                        style={{ fontSize: "1.2em" }}
+                      >
+                        ✏️
+                      </button>
+                    )}
+                    {/* Calendar */}
+                    {editingId !== item.id && (
+                      <button
+                        className="h-8 w-8 flex items-center justify-center rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition"
+                        title="Set last or next replacement date"
+                        aria-label="Calendar"
+                        onClick={() =>
+                          handleCalendarClick(
+                            item.id,
+                            item.lastReplaced,
+                            item.replacementInterval
+                          )
+                        }
+                        style={{ fontSize: "1.2em" }}
+                      >
+                        📅
+                      </button>
+                    )}
+                    {/* Replace Now */}
+                    {editingId !== item.id && (
+                      <button
+                        className="h-8 px-3 flex items-center justify-center rounded bg-green-500 text-white hover:bg-green-600 transition text-sm font-semibold"
+                        onClick={() => handleReplace(item.id)}
+                      >
+                        Replace
+                      </button>
+                    )}
+                    {/* Delete */}
+                    {editingId !== item.id && (
+                      <button
+                        className="h-8 w-8 flex items-center justify-center rounded hover:bg-gray-300 dark:hover:bg-gray-600 transition"
+                        title="Delete"
+                        aria-label="Delete"
+                        onClick={() => setDeleteId(item.id)}
+                        style={{
+                          fontSize: "1.3em",
+                          color: "#111",
+                          background: "none",
+                          border: "none",
+                          padding: 0,
+                        }}
+                      >
+                        ×
+                      </button>
+                    )}
                   </div>
                 </div>
+
+                {/* Calendar date picker inline */}
+                {calendarId === item.id && (
+                  <div className="flex flex-col sm:flex-row items-center mt-2 space-y-2 sm:space-y-0 sm:space-x-4">
+                    <div className="flex items-center space-x-2">
+                      <label className="text-gray-700 dark:text-gray-300 text-sm">
+                        Last replaced:
+                      </label>
+                      <input
+                        type="date"
+                        className="border rounded px-2 py-1 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
+                        value={calendarLastDate}
+                        onChange={handleCalendarLastChange}
+                        max={new Date().toISOString().slice(0, 10)}
+                      />
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <label className="text-gray-700 dark:text-gray-300 text-sm">
+                        Next replacement:
+                      </label>
+                      <input
+                        type="date"
+                        className="border rounded px-2 py-1 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
+                        value={calendarNextDate}
+                        onChange={handleCalendarNextChange}
+                        min={calendarLastDate}
+                      />
+                    </div>
+                    <button
+                      className="text-green-600 hover:text-green-800"
+                      title="Save date"
+                      onClick={() => handleCalendarSave(item.id)}
+                    >
+                      💾
+                    </button>
+                    <button
+                      className="text-gray-500 hover:text-gray-700"
+                      title="Cancel"
+                      onClick={handleCalendarCancel}
+                    >
+                      ❌
+                    </button>
+                  </div>
+                )}
               </div>
-
-              {/* Calendar date picker modal/inline */}
-              {calendarId === item.id && (
-                <div className="flex flex-col sm:flex-row items-center mt-2 space-y-2 sm:space-y-0 sm:space-x-4">
-                  <div className="flex items-center space-x-2">
-                    <label className="text-gray-700 text-sm">
-                      Last replaced:
-                    </label>
-                    <input
-                      type="date"
-                      className="border rounded px-2 py-1"
-                      value={calendarLastDate}
-                      onChange={handleCalendarLastChange}
-                      max={new Date().toISOString().slice(0, 10)}
-                    />
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <label className="text-gray-700 text-sm">
-                      Next replacement:
-                    </label>
-                    <input
-                      type="date"
-                      className="border rounded px-2 py-1"
-                      value={calendarNextDate}
-                      onChange={handleCalendarNextChange}
-                      min={calendarLastDate}
-                    />
-                  </div>
-                  <button
-                    className="text-green-600 hover:text-green-800"
-                    title="Save date"
-                    onClick={() => handleCalendarSave(item.id)}
-                  >
-                    💾
-                  </button>
-                  <button
-                    className="text-gray-500 hover:text-gray-700"
-                    title="Cancel"
-                    onClick={handleCalendarCancel}
-                  >
-                    ❌
-                  </button>
-                </div>
-              )}
-
               {/* Divider line between items */}
               {idx < arr.length - 1 && (
-                <hr className="my-8 border-t border-gray-300" />
+                <hr className="my-8 border-t border-gray-300 dark:border-gray-700" />
               )}
             </React.Fragment>
           );
         })}
       </div>
+
+      {/* Delete confirmation modal */}
+      {deleteId !== null && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white dark:bg-gray-900 rounded-lg shadow-lg p-6 w-full max-w-xs text-center">
+            <h2 className="font-bold text-lg mb-3 text-gray-900 dark:text-gray-100">
+              Delete Item?
+            </h2>
+            <p className="text-gray-700 dark:text-gray-300 mb-5">
+              Are you sure you want to delete this item? This action cannot be
+              undone.
+            </p>
+            <div className="flex justify-center gap-4">
+              <button
+                className="px-4 py-2 rounded bg-gray-300 dark:bg-gray-700 text-gray-900 dark:text-gray-100 hover:bg-gray-400 dark:hover:bg-gray-600"
+                onClick={() => setDeleteId(null)}
+              >
+                Cancel
+              </button>
+              <button
+                className="px-4 py-2 rounded bg-black text-white hover:bg-red-600"
+                onClick={() => handleDelete(deleteId)}
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <SpeedInsights />
     </div>
   );
