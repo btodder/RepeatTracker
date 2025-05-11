@@ -49,24 +49,6 @@ function calculateNextDate(lastReplaced: string, interval: number) {
   return last.toLocaleDateString();
 }
 
-// ==================
-// DARK MODE TOGGLE BUTTON USAGE EXAMPLE
-// ==================
-
-// Add this inside your App component (not inside a loop or conditional):
-/*
-const [dark, setDark] = useDarkMode();
-
-return (
-  <div>
-    <button onClick={() => setDark((v) => !v)}>
-      {dark ? "Switch to Light Mode" : "Switch to Dark Mode"}
-    </button>
-    // ...rest of your app content
-  </div>
-);
-*/
-
 const App: React.FC = () => {
   const [items, setItems] = useLocalStorage<Item[]>("replacement-items", []);
   const [name, setName] = useState("");
@@ -253,7 +235,6 @@ const App: React.FC = () => {
           onClick={() => setDark((d) => !d)}
           style={{ fontSize: "1.5rem" }}
         >
-          {/* Black and white sun/moon SVG */}
           {dark ? (
             // Moon
             <svg
@@ -287,43 +268,36 @@ const App: React.FC = () => {
         </button>
       </div>
 
-      <form
-        onSubmit={handleAdd}
-        style={{
-          display: "flex",
-          flexWrap: "wrap",
-          gap: "0.5rem",
-          alignItems: "center",
-          justifyContent: "center",
-          marginBottom: "2.5rem",
-          maxWidth: 700,
-          marginLeft: "auto",
-          marginRight: "auto",
-        }}
-      >
-        <input
-          placeholder="Item name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          maxLength={40}
-          required
-        />
-        <input
-          type="number"
-          min={1}
-          value={interval}
-          onChange={(e) => setInterval(Number(e.target.value))}
-          required
-          placeholder="days"
-        />
-        <select value={category} onChange={(e) => setCategory(e.target.value)}>
-          {categories.map((cat) => (
-            <option key={cat}>{cat}</option>
-          ))}
-        </select>
-        <button className="replace-btn" type="submit">
-          Add
-        </button>
+      {/* Modern input row */}
+      <form onSubmit={handleAdd} style={{ margin: 0 }}>
+        <div className="input-row">
+          <input
+            placeholder="Item name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            maxLength={40}
+            required
+          />
+          <input
+            type="number"
+            min={1}
+            value={interval}
+            onChange={(e) => setInterval(Number(e.target.value))}
+            required
+            placeholder="days"
+          />
+          <select
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+          >
+            {categories.map((cat) => (
+              <option key={cat}>{cat}</option>
+            ))}
+          </select>
+          <button className="replace-btn" type="submit">
+            Add
+          </button>
+        </div>
       </form>
 
       <div style={{ maxWidth: 700, margin: "0 auto" }}>
@@ -332,7 +306,7 @@ const App: React.FC = () => {
             No items yet. Add something to track!
           </div>
         )}
-        {(sortedItems ?? []).map((item, idx, arr) => {
+        {(sortedItems ?? []).map((item) => {
           const daysLeft = calculateDaysLeft(
             item.lastReplaced,
             item.replacementInterval
@@ -343,319 +317,255 @@ const App: React.FC = () => {
           );
 
           return (
-            <React.Fragment key={item.id}>
-              <div className="card">
+            <div className="card" key={item.id}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "flex-start",
+                  flexWrap: "wrap",
+                  gap: "1rem",
+                }}
+              >
                 <div
                   style={{
                     display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "flex-start",
+                    alignItems: "center",
+                    gap: "0.5rem",
                     flexWrap: "wrap",
-                    gap: "1rem",
                   }}
                 >
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "0.5rem",
-                      flexWrap: "wrap",
-                    }}
-                  >
-                    {editingId === item.id ? (
-                      <>
-                        <input
-                          ref={editInputRef}
-                          value={editName}
-                          onChange={handleEditChange}
-                          autoFocus
-                          placeholder="Rename item"
-                          onBlur={handleEditCancel}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") handleEditSave(item.id);
-                          }}
-                          style={{ fontSize: "1.1rem", minWidth: 120 }}
-                        />
-                        <button
-                          className="icon-btn"
-                          title="Save"
-                          onClick={() => handleEditSave(item.id)}
-                        >
-                          {/* Black & white floppy disk SVG */}
-                          <svg
-                            width="20"
-                            height="20"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                          >
-                            <rect
-                              x="3"
-                              y="3"
-                              width="18"
-                              height="18"
-                              rx="2"
-                              stroke="currentColor"
-                            />
-                            <path
-                              d="M16 3v4a1 1 0 0 1-1 1h-6a1 1 0 0 1-1-1V3"
-                              stroke="currentColor"
-                            />
-                            <path d="M9 15h6v6H9z" stroke="currentColor" />
-                          </svg>
-                        </button>
-                      </>
-                    ) : (
-                      <>
-                        <span
-                          className="task-name"
-                          style={{ fontWeight: 600, fontSize: "1.1rem" }}
-                        >
-                          {item.name}
-                        </span>
-                        {item.category !== "None" && (
-                          <span className="category">{item.category}</span>
-                        )}
-                      </>
-                    )}
-                  </div>
-                  <div className="text-muted">
-                    Replace every <b>{item.replacementInterval}</b> days. Last
-                    replaced: {new Date(item.lastReplaced).toLocaleDateString()}
-                  </div>
-                </div>
-
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "flex-end",
-                    flexWrap: "wrap",
-                    gap: "1rem",
-                    marginTop: "1.1rem",
-                  }}
-                >
-                  <div className={daysLeft < 0 ? "overdue" : "normal"}>
-                    {daysLeft < 0 ? (
-                      <span>Overdue by {Math.abs(daysLeft)} days</span>
-                    ) : (
-                      <span>
-                        {daysLeft}{" "}
-                        <span style={{ fontWeight: 400, fontSize: "1rem" }}>
-                          days
-                        </span>{" "}
-                        left
-                      </span>
-                    )}
-                  </div>
-                  <div className="text-muted">Next: {nextDate}</div>
-                  <div className="actions-row">
-                    {editingId !== item.id && (
-                      <>
-                        <button
-                          className="icon-btn"
-                          title="Rename"
-                          aria-label="Rename"
-                          onClick={() => handleEditClick(item.id, item.name)}
-                        >
-                          {/* Black & white I-beam (text cursor) SVG */}
-                          <svg
-                            width="20"
-                            height="20"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                          >
-                            <rect
-                              x="9"
-                              y="4"
-                              width="6"
-                              height="16"
-                              rx="2"
-                              stroke="currentColor"
-                              fill="none"
-                            />
-                            <line
-                              x1="12"
-                              y1="4"
-                              x2="12"
-                              y2="20"
-                              stroke="currentColor"
-                            />
-                          </svg>
-                        </button>
-                        <button
-                          className="icon-btn"
-                          title="Set last or next replacement date"
-                          aria-label="Calendar"
-                          onClick={() =>
-                            handleCalendarClick(
-                              item.id,
-                              item.lastReplaced,
-                              item.replacementInterval
-                            )
-                          }
-                        >
-                          {/* Calendar SVG, black/white */}
-                          <svg
-                            width="20"
-                            height="20"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            viewBox="0 0 24 24"
-                          >
-                            <rect x="3" y="4" width="18" height="18" rx="2" />
-                            <path d="M16 2v4M8 2v4M3 10h18" />
-                          </svg>
-                        </button>
-                        <button
-                          className="replace-btn"
-                          onClick={() => handleReplace(item.id)}
-                        >
-                          Replace
-                        </button>
-                        <button
-                          className="delete-btn"
-                          title="Delete"
-                          aria-label="Delete"
-                          onClick={() => setDeleteId(item.id)}
-                        >
-                          ×
-                        </button>
-                      </>
-                    )}
-                  </div>
-                </div>
-                {/* Calendar date picker inline */}
-                {calendarId === item.id && (
-                  <div
-                    style={{
-                      display: "flex",
-                      flexWrap: "wrap",
-                      gap: "1rem",
-                      alignItems: "center",
-                      marginTop: "1.1rem",
-                      justifyContent: "center",
-                    }}
-                  >
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "0.5rem",
-                      }}
-                    >
-                      <label style={{ fontSize: "0.97rem" }}>
-                        Last replaced:
-                      </label>
+                  {editingId === item.id ? (
+                    <>
                       <input
-                        type="date"
-                        value={calendarLastDate}
-                        onChange={handleCalendarLastChange}
-                        max={new Date().toISOString().slice(0, 10)}
+                        ref={editInputRef}
+                        value={editName}
+                        onChange={handleEditChange}
+                        autoFocus
+                        placeholder="Rename item"
+                        onBlur={handleEditCancel}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") handleEditSave(item.id);
+                        }}
+                        style={{ fontSize: "1.1rem", minWidth: 120 }}
                       />
-                    </div>
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "0.5rem",
-                      }}
-                    >
-                      <label style={{ fontSize: "0.97rem" }}>
-                        Next replacement:
-                      </label>
-                      <input
-                        type="date"
-                        value={calendarNextDate}
-                        onChange={handleCalendarNextChange}
-                        min={calendarLastDate}
-                      />
-                    </div>
-                    <button
-                      className="icon-btn"
-                      title="Save date"
-                      onClick={() => handleCalendarSave(item.id)}
-                    >
-                      {/* Black & white floppy disk SVG */}
-                      <svg
-                        width="20"
-                        height="20"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
+                      <button
+                        className="icon-btn"
+                        title="Save"
+                        onClick={() => handleEditSave(item.id)}
                       >
-                        <rect
-                          x="3"
-                          y="3"
-                          width="18"
-                          height="18"
-                          rx="2"
+                        {/* Floppy disk SVG */}
+                        <svg
+                          width="20"
+                          height="20"
+                          viewBox="0 0 24 24"
+                          fill="none"
                           stroke="currentColor"
-                        />
-                        <path
-                          d="M16 3v4a1 1 0 0 1-1 1h-6a1 1 0 0 1-1-1V3"
-                          stroke="currentColor"
-                        />
-                        <path d="M9 15h6v6H9z" stroke="currentColor" />
-                      </svg>
-                    </button>
-                    <button
-                      className="calendar-cancel-btn"
-                      title="Cancel"
-                      type="button"
-                      onClick={handleCalendarCancel}
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                )}
+                          strokeWidth="2"
+                        >
+                          <rect
+                            x="3"
+                            y="3"
+                            width="18"
+                            height="18"
+                            rx="2"
+                            stroke="currentColor"
+                          />
+                          <path
+                            d="M16 3v4a1 1 0 0 1-1 1h-6a1 1 0 0 1-1-1V3"
+                            stroke="currentColor"
+                          />
+                          <path d="M9 15h6v6H9z" stroke="currentColor" />
+                        </svg>
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <span
+                        className="task-name"
+                        style={{ fontWeight: 600, fontSize: "1.1rem" }}
+                      >
+                        {item.name}
+                      </span>
+                      {item.category !== "None" && (
+                        <span className="category">{item.category}</span>
+                      )}
+                    </>
+                  )}
+                </div>
+                <div className="text-muted">
+                  Replace every <b>{item.replacementInterval}</b> days. Last
+                  replaced: {new Date(item.lastReplaced).toLocaleDateString()}
+                </div>
               </div>
-              {idx < arr.length - 1 && <hr />}
-            </React.Fragment>
+
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "flex-end",
+                  flexWrap: "wrap",
+                  gap: "1rem",
+                  marginTop: "1.1rem",
+                }}
+              >
+                <div className={daysLeft < 0 ? "overdue" : "normal"}>
+                  {daysLeft < 0 ? (
+                    <span>Overdue by {Math.abs(daysLeft)} days</span>
+                  ) : (
+                    <span>
+                      {daysLeft}{" "}
+                      <span style={{ fontWeight: 400, fontSize: "1rem" }}>
+                        days
+                      </span>{" "}
+                      left
+                    </span>
+                  )}
+                </div>
+                <div className="text-muted">Next: {nextDate}</div>
+                <div className="actions-row">
+                  {editingId !== item.id && (
+                    <>
+                      <button
+                        className="icon-btn"
+                        title="Rename"
+                        aria-label="Rename"
+                        onClick={() => handleEditClick(item.id, item.name)}
+                      >
+                        {/* I-beam SVG */}
+                        <svg
+                          width="20"
+                          height="20"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                        >
+                          <rect
+                            x="9"
+                            y="4"
+                            width="6"
+                            height="16"
+                            rx="2"
+                            stroke="currentColor"
+                            fill="none"
+                          />
+                          <line
+                            x1="12"
+                            y1="4"
+                            x2="12"
+                            y2="20"
+                            stroke="currentColor"
+                          />
+                        </svg>
+                      </button>
+                      <button
+                        className="icon-btn"
+                        title="Replace now"
+                        aria-label="Replace now"
+                        onClick={() => handleReplace(item.id)}
+                      >
+                        {/* Refresh SVG */}
+                        <svg
+                          width="20"
+                          height="20"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                        >
+                          <path d="M4 4v5h5" />
+                          <path d="M19 20v-5h-5" />
+                          <path d="M5 9a9 9 0 0 1 14 6" />
+                          <path d="M19 15a9 9 0 0 1-14-6" />
+                        </svg>
+                      </button>
+                      <button
+                        className="icon-btn"
+                        title="Calendar"
+                        aria-label="Calendar"
+                        onClick={() =>
+                          handleCalendarClick(
+                            item.id,
+                            item.lastReplaced,
+                            item.replacementInterval
+                          )
+                        }
+                      >
+                        {/* Calendar SVG */}
+                        <svg
+                          width="20"
+                          height="20"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                        >
+                          <rect
+                            x="3"
+                            y="4"
+                            width="18"
+                            height="18"
+                            rx="2"
+                            stroke="currentColor"
+                            fill="none"
+                          />
+                          <line
+                            x1="16"
+                            y1="2"
+                            x2="16"
+                            y2="6"
+                            stroke="currentColor"
+                          />
+                          <line
+                            x1="8"
+                            y1="2"
+                            x2="8"
+                            y2="6"
+                            stroke="currentColor"
+                          />
+                          <line
+                            x1="3"
+                            y1="10"
+                            x2="21"
+                            y2="10"
+                            stroke="currentColor"
+                          />
+                        </svg>
+                      </button>
+                      <button
+                        className="icon-btn"
+                        title="Delete"
+                        aria-label="Delete"
+                        onClick={() => setDeleteId(item.id)}
+                      >
+                        {/* Trash SVG */}
+                        <svg
+                          width="20"
+                          height="20"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                        >
+                          <polyline points="3 6 5 6 21 6" />
+                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
+                          <path d="M10 11v6" />
+                          <path d="M14 11v6" />
+                          <path d="M9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2" />
+                        </svg>
+                      </button>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
           );
         })}
       </div>
-
-      {/* Delete confirmation modal */}
-      {deleteId !== null && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <h2
-              style={{ fontWeight: 700, fontSize: "1.2rem", marginBottom: 12 }}
-            >
-              Delete Item?
-            </h2>
-            <p style={{ marginBottom: 24 }}>
-              Are you sure you want to delete this item? This action cannot be
-              undone.
-            </p>
-            <div
-              style={{ display: "flex", gap: "1rem", justifyContent: "center" }}
-            >
-              <button
-                className="replace-btn normal"
-                onClick={() => setDeleteId(null)}
-              >
-                Cancel
-              </button>
-              <button
-                className="delete-btn"
-                onClick={() => handleDelete(deleteId)}
-              >
-                ×
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       <SpeedInsights />
     </div>
   );
 };
+
 export default App;

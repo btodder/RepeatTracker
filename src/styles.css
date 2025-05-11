@@ -31,7 +31,6 @@ body.dark-mode {
   --color-modal-text: #fff;
   --color-hr: #444;
 
-  /* Fallback for background and text color in dark mode */
   background: #000 !important;
   color: #fff !important;
 }
@@ -41,7 +40,7 @@ html {
   min-height: 100vh;
   margin: 0;
   padding: 0;
-  font-family: sans-serif;
+  font-family: "Segoe UI", "Roboto", Arial, sans-serif;
   background: var(--color-background);
   color: var(--color-text);
   transition: background 0.3s, color 0.3s;
@@ -50,16 +49,58 @@ html {
 .App {
   min-height: 100vh;
   text-align: center;
+  padding: 2rem 0;
 }
 
-/* Card styles */
+/* Modern input row styling */
+.input-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin-bottom: 2rem;
+  justify-content: center;
+}
+
+.input-row input,
+.input-row select,
+.input-row button {
+  height: 2.5rem;
+  padding: 0 1rem;
+  font-size: 1rem;
+  border-radius: 6px;
+  border: 1px solid var(--color-border);
+  background: var(--color-card);
+  color: var(--color-text);
+  box-sizing: border-box;
+}
+
+.input-row select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+}
+
+.input-row button {
+  background: var(--color-btn-bg);
+  color: var(--color-btn-text);
+  border: 1px solid var(--color-btn-border);
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.input-row button:hover {
+  background: var(--color-btn-bg-hover);
+}
+
+/* Card/panel for modern look */
+.panel,
 .card {
   background: var(--color-card);
-  border-radius: 14px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
-  border-left: 4px solid var(--color-border);
-  margin-bottom: 2.5rem;
-  padding: 1.5rem 1.5rem 1rem 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+  padding: 2rem;
+  margin: 0 auto 2rem auto;
+  max-width: 600px;
   transition: background 0.3s, color 0.3s;
   color: var(--color-text);
 }
@@ -140,81 +181,4 @@ body.dark-mode .icon-btn {
 body.dark-mode .icon-btn:hover,
 body.dark-mode .icon-btn:focus {
   background: var(--color-btn-bg-hover);
-  color: var(--color-btn-text);
-}
-
-/* Replace button styled as icon button */
-.replace-btn {
-  height: 2.5rem;
-  min-width: 2.5rem;
-  padding: 0 1.1rem;
-  border-radius: 7px;
-  background: var(--color-btn-bg);
-  color: var(--color-btn-text);
-  font-weight: 600;
-  border: none;
-  font-size: 1rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background 0.2s, color 0.2s;
-}
-
-body.dark-mode .replace-btn {
-  background: var(--color-btn-bg);
-  color: var(--color-btn-text);
-}
-
-.replace-btn:hover,
-.replace-btn:focus {
-  background: var(--color-btn-bg-hover);
-  color: var(--color-btn-border);
-  outline: none;
-}
-
-/* FIXED: typo here, was body.dark .modal-content */
-body.dark-mode .modal-content {
-  background: #181818;
-  color: #fff;
-  box-shadow: 0 2px 24px rgba(0, 0, 0, 0.45);
-  border-radius: 10px;
-  padding: 2rem 1.5rem;
-  min-width: 300px;
-  max-width: 90vw;
-  text-align: center;
-}
-
-.modal-content {
-  background: #fff;
-  color: #23272f;
-  border-radius: 10px;
-  padding: 2rem 1.5rem;
-  min-width: 300px;
-  max-width: 90vw;
-  box-shadow: 0 2px 24px rgba(0, 0, 0, 0.18);
-  text-align: center;
-}
-
-/* Calendar cancel button */
-.calendar-cancel-btn {
-  background: none;
-  border: none;
-  color: inherit;
-  font-size: 1rem;
-  padding: 0.5rem 1rem;
-  border-radius: 7px;
-  cursor: pointer;
-  transition: background 0.2s, color 0.2s;
-}
-
-.calendar-cancel-btn:hover,
-.calendar-cancel-btn:focus {
-  background: #ededed;
-  color: #111;
-}
-
-body.dark-mode .calendar-cancel-btn:hover,
-body.dark-mode .calendar-cancel-btn:focus {
-  background: #222;
-  color: #fff;
 }
