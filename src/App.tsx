@@ -2,17 +2,24 @@ import React, { useState, useEffect, useRef } from "react";
 import useLocalStorage from "use-local-storage";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 
+const categories = ["Hygiene", "Expiration", "Performance", "None"];
+const verbs = [
+  "Appointment",
+  "Meeting",
+  "Replace",
+  "Check",
+  "Water"
+];
+
 type Item = {
   id: number;
   name: string;
   replacementInterval: number;
   lastReplaced: string;
   category: string;
+  verb: string;
 };
 
-const categories = ["Hygiene", "Expiration", "Performance", "None"];
-
-// Dark mode hook with localStorage
 function useDarkMode() {
   const [dark, setDark] = useState(() => {
     const ls = localStorage.getItem("dark-mode");
@@ -32,6 +39,13 @@ function useDarkMode() {
     }
   }, [dark]);
   return [dark, setDark] as const;
+}
+
+function calculateDaysBetween(date1: string, date2: string) {
+  const d1 = new Date(date1);
+  const d2 = new Date(date2);
+  const diff = Math.abs(d2.getTime() - d1.getTime());
+  return Math.round(diff / (1000 * 60 * 60 * 24));
 }
 
 function calculateDaysLeft(lastReplaced: string, interval: number) {
@@ -68,8 +82,8 @@ const App: React.FC = () => {
   // Dark mode
   const [dark, setDark] = useDarkMode();
 
-  // For click-outside cancel on rename
-  const editInputRef = useRef<HTMLInputElement | null>(null);
+  // Verb menu state
+  const [verbMenuId, setVerbMenuId] = useState<number | null>(null);
 
   // Add new item
   const handleAdd = (e: React.FormEvent) => {
@@ -83,7 +97,8 @@ const App: React.FC = () => {
         replacementInterval: interval,
         lastReplaced: new Date().toISOString(),
         category,
-      },
+        verb: "Replace"
+      }
     ]);
     setName("");
     setInterval(30);
@@ -133,22 +148,6 @@ const App: React.FC = () => {
     setEditName("");
   };
 
-  // Click outside to cancel rename
-  useEffect(() => {
-    if (editingId === null) return;
-    function handleClick(e: MouseEvent) {
-      if (
-        editInputRef.current &&
-        !editInputRef.current.contains(e.target as Node)
-      ) {
-        handleEditCancel();
-      }
-    }
-    document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
-    // eslint-disable-next-line
-  }, [editingId]);
-
   // Calendar button logic
   const handleCalendarClick = (
     id: number,
@@ -162,6 +161,20 @@ const App: React.FC = () => {
     last.setDate(last.getDate() + interval);
     setCalendarNextDate(last.toISOString().slice(0, 10));
   };
+
+  // When calendar dates change, update interval automatically
+  useEffect(() => {
+    if (calendarId !== null && calendarLastDate && calendarNextDate) {
+      const days = calculateDaysBetween(calendarLastDate, calendarNextDate);
+      setItems((items ?? []).map((item) =>
+        item.id === calendarId
+          ? { ...item, replacementInterval: days }
+          : item
+      ));
+      setInterval(days); // also update the add form interval for consistency
+    }
+    // eslint-disable-next-line
+  }, [calendarLastDate, calendarNextDate]);
 
   const handleCalendarLastChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setCalendarLastDate(e.target.value);
@@ -178,14 +191,14 @@ const App: React.FC = () => {
 
   const handleCalendarNextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setCalendarNextDate(e.target.value);
-    // Update last replaced date so that last + interval = next
+    // Update interval when next date changes
     if (calendarId !== null) {
-      const item = (items ?? []).find((i) => i.id === calendarId);
-      if (item) {
-        const next = new Date(e.target.value);
-        next.setDate(next.getDate() - item.replacementInterval);
-        setCalendarLastDate(next.toISOString().slice(0, 10));
-      }
+      const days = calculateDaysBetween(calendarLastDate, e.target.value);
+      setItems((items ?? []).map((item) =>
+        item.id === calendarId
+          ? { ...item, replacementInterval: days }
+          : item
+      ));
     }
   };
 
@@ -193,7 +206,14 @@ const App: React.FC = () => {
     setItems(
       (items ?? []).map((item) =>
         item.id === id
-          ? { ...item, lastReplaced: new Date(calendarLastDate).toISOString() }
+          ? {
+              ...item,
+              lastReplaced: new Date(calendarLastDate).toISOString(),
+              replacementInterval: calculateDaysBetween(
+                calendarLastDate,
+                calendarNextDate
+              )
+            }
           : item
       )
     );
@@ -208,6 +228,31 @@ const App: React.FC = () => {
     setCalendarNextDate("");
   };
 
+  // Modal click-outside logic
+  const modalRef = useRef<HTMLDivElement>(null);
+  const calendarModalRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (deleteId !== null && modalRef.current && !modalRef.current.contains(event.target as Node)) {
+        setDeleteId(null);
+      }
+      if (calendarId !== null && calendarModalRef.current && !calendarModalRef.current.contains(event.target as Node)) {
+        handleCalendarCancel();
+      }
+      if (verbMenuId !== null) {
+        setVerbMenuId(null);
+      }
+    }
+    if (deleteId !== null || calendarId !== null || verbMenuId !== null) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+    // eslint-disable-next-line
+  }, [deleteId, calendarId, verbMenuId]);
+
   // Sort items: overdue first, then soonest to be replaced
   const sortedItems = [...(items ?? [])].sort((a, b) => {
     const aLeft = calculateDaysLeft(a.lastReplaced, a.replacementInterval);
@@ -217,58 +262,16 @@ const App: React.FC = () => {
 
   return (
     <div className="App">
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          maxWidth: 700,
-          margin: "0 auto 2rem auto",
-        }}
+      <h1 className="centered-title">Replacement Tracker</h1>
+      <button
+        className="icon-btn darkmode-btn"
+        aria-label="Toggle dark mode"
+        onClick={() => setDark((d) => !d)}
       >
-        <h1 style={{ fontSize: "2rem", fontWeight: 700, margin: "1.5rem 0" }}>
-          Replacement Tracker
-        </h1>
-        <button
-          className="icon-btn"
-          aria-label="Toggle dark mode"
-          onClick={() => setDark((d) => !d)}
-          style={{ fontSize: "1.5rem" }}
-        >
-          {dark ? (
-            // Moon
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79z" />
-            </svg>
-          ) : (
-            // Sun
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <circle cx="12" cy="12" r="5" />
-              <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
-            </svg>
-          )}
-        </button>
-      </div>
+        {dark ? "🌙" : "☀️"}
+      </button>
 
-      {/* Modern input row */}
+      {/* Input Row */}
       <form onSubmit={handleAdd} style={{ margin: 0 }}>
         <div className="input-row">
           <input
@@ -312,7 +315,6 @@ const App: React.FC = () => {
             item.lastReplaced,
             item.replacementInterval
           );
-
           return (
             <div className="card" key={item.id}>
               <div
@@ -335,7 +337,6 @@ const App: React.FC = () => {
                   {editingId === item.id ? (
                     <>
                       <input
-                        ref={editInputRef}
                         value={editName}
                         onChange={handleEditChange}
                         autoFocus
@@ -351,29 +352,7 @@ const App: React.FC = () => {
                         title="Save"
                         onClick={() => handleEditSave(item.id)}
                       >
-                        {/* Floppy disk SVG */}
-                        <svg
-                          width="20"
-                          height="20"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                        >
-                          <rect
-                            x="3"
-                            y="3"
-                            width="18"
-                            height="18"
-                            rx="2"
-                            stroke="currentColor"
-                          />
-                          <path
-                            d="M16 3v4a1 1 0 0 1-1 1h-6a1 1 0 0 1-1-1V3"
-                            stroke="currentColor"
-                          />
-                          <path d="M9 15h6v6H9z" stroke="currentColor" />
-                        </svg>
+                        💾
                       </button>
                     </>
                   ) : (
@@ -391,8 +370,42 @@ const App: React.FC = () => {
                   )}
                 </div>
                 <div className="text-muted">
-                  Replace every <b>{item.replacementInterval}</b> days. Last
-                  replaced: {new Date(item.lastReplaced).toLocaleDateString()}
+                  <span
+                    className="verb-select"
+                    tabIndex={0}
+                    onMouseEnter={e => (e.currentTarget.style.textDecoration = "underline")}
+                    onMouseLeave={e => (e.currentTarget.style.textDecoration = "none")}
+                    onClick={e => {
+                      e.stopPropagation();
+                      setVerbMenuId(item.id);
+                    }}
+                  >
+                    {item.verb}
+                  </span>{" "}
+                  every <b>{item.replacementInterval}</b> days.{" "}
+                  {item.verb === "Replace" || item.verb === "Check" || item.verb === "Water"
+                    ? `Last ${item.verb.toLowerCase()}ed:`
+                    : `Last ${item.verb.toLowerCase()}:`
+                  }{" "}
+                  {new Date(item.lastReplaced).toLocaleDateString()}
+                  {verbMenuId === item.id && (
+                    <div className="verb-menu" onClick={e => e.stopPropagation()}>
+                      {verbs.map(v => (
+                        <div
+                          key={v}
+                          className="verb-menu-item"
+                          onClick={() => {
+                            setItems((items ?? []).map(i =>
+                              i.id === item.id ? { ...i, verb: v } : i
+                            ));
+                            setVerbMenuId(null);
+                          }}
+                        >
+                          {v}
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -408,14 +421,10 @@ const App: React.FC = () => {
               >
                 <div className={daysLeft < 0 ? "overdue" : "normal"}>
                   {daysLeft < 0 ? (
-                    <span>Overdue by {Math.abs(daysLeft)} days</span>
+                    <span>{Math.abs(daysLeft)} days overdue</span>
                   ) : (
                     <span>
-                      {daysLeft}{" "}
-                      <span style={{ fontWeight: 400, fontSize: "1rem" }}>
-                        days
-                      </span>{" "}
-                      left
+                      {daysLeft} <span style={{ fontWeight: 400, fontSize: "1rem" }}>days</span> left
                     </span>
                   )}
                 </div>
@@ -429,32 +438,7 @@ const App: React.FC = () => {
                         aria-label="Rename"
                         onClick={() => handleEditClick(item.id, item.name)}
                       >
-                        {/* I-beam SVG */}
-                        <svg
-                          width="20"
-                          height="20"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                        >
-                          <rect
-                            x="9"
-                            y="4"
-                            width="6"
-                            height="16"
-                            rx="2"
-                            stroke="currentColor"
-                            fill="none"
-                          />
-                          <line
-                            x1="12"
-                            y1="4"
-                            x2="12"
-                            y2="20"
-                            stroke="currentColor"
-                          />
-                        </svg>
+                        ✏️
                       </button>
                       <button
                         className="icon-btn"
@@ -462,20 +446,7 @@ const App: React.FC = () => {
                         aria-label="Replace now"
                         onClick={() => handleReplace(item.id)}
                       >
-                        {/* Refresh SVG */}
-                        <svg
-                          width="20"
-                          height="20"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                        >
-                          <path d="M4 4v5h5" />
-                          <path d="M19 20v-5h-5" />
-                          <path d="M5 9a9 9 0 0 1 14 6" />
-                          <path d="M19 15a9 9 0 0 1-14-6" />
-                        </svg>
+                        🔄
                       </button>
                       <button
                         className="icon-btn"
@@ -489,46 +460,7 @@ const App: React.FC = () => {
                           )
                         }
                       >
-                        {/* Calendar SVG */}
-                        <svg
-                          width="20"
-                          height="20"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                        >
-                          <rect
-                            x="3"
-                            y="4"
-                            width="18"
-                            height="18"
-                            rx="2"
-                            stroke="currentColor"
-                            fill="none"
-                          />
-                          <line
-                            x1="16"
-                            y1="2"
-                            x2="16"
-                            y2="6"
-                            stroke="currentColor"
-                          />
-                          <line
-                            x1="8"
-                            y1="2"
-                            x2="8"
-                            y2="6"
-                            stroke="currentColor"
-                          />
-                          <line
-                            x1="3"
-                            y1="10"
-                            x2="21"
-                            y2="10"
-                            stroke="currentColor"
-                          />
-                        </svg>
+                        📅
                       </button>
                       <button
                         className="icon-btn"
@@ -536,21 +468,7 @@ const App: React.FC = () => {
                         aria-label="Delete"
                         onClick={() => setDeleteId(item.id)}
                       >
-                        {/* Trash SVG */}
-                        <svg
-                          width="20"
-                          height="20"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                        >
-                          <polyline points="3 6 5 6 21 6" />
-                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
-                          <path d="M10 11v6" />
-                          <path d="M14 11v6" />
-                          <path d="M9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2" />
-                        </svg>
+                        🗑️
                       </button>
                     </>
                   )}
@@ -564,20 +482,22 @@ const App: React.FC = () => {
       {/* Delete Modal */}
       {deleteId !== null && (
         <div className="modal-overlay">
-          <div className="modal-dialog">
+          <div className="modal-dialog" ref={modalRef}>
+            <div className="modal-title">Delete Item</div>
             <div style={{ marginBottom: "1.5rem" }}>
               Are you sure you want to delete this item?
             </div>
-            <button
-              style={{ marginRight: "1rem" }}
-              className="replace-btn"
-              onClick={() => handleDelete(deleteId)}
-            >
-              Yes, Delete
-            </button>
-            <button className="replace-btn" onClick={() => setDeleteId(null)}>
-              Cancel
-            </button>
+            <div className="modal-btn-row">
+              <button
+                className="modal-btn"
+                onClick={() => handleDelete(deleteId)}
+              >
+                Delete
+              </button>
+              <button className="modal-btn" onClick={() => setDeleteId(null)}>
+                Cancel
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -585,39 +505,39 @@ const App: React.FC = () => {
       {/* Calendar Modal */}
       {calendarId !== null && (
         <div className="modal-overlay">
-          <div className="modal-dialog">
-            <div style={{ marginBottom: "1rem" }}>
-              <div>
-                <label>
-                  Last replaced:{" "}
-                  <input
-                    type="date"
-                    value={calendarLastDate}
-                    onChange={handleCalendarLastChange}
-                  />
-                </label>
-              </div>
-              <div style={{ marginTop: "1rem" }}>
-                <label>
-                  Next replacement:{" "}
-                  <input
-                    type="date"
-                    value={calendarNextDate}
-                    onChange={handleCalendarNextChange}
-                  />
-                </label>
-              </div>
+          <div className="modal-dialog" ref={calendarModalRef}>
+            <div className="modal-title">Edit Dates</div>
+            <div className="calendar-row">
+              <label>
+                <span className="calendar-label">Last replaced:</span>
+                <input
+                  type="date"
+                  value={calendarLastDate}
+                  onChange={handleCalendarLastChange}
+                  className="calendar-date"
+                />
+              </label>
+              <label>
+                <span className="calendar-label">Next replacement:</span>
+                <input
+                  type="date"
+                  value={calendarNextDate}
+                  onChange={handleCalendarNextChange}
+                  className="calendar-date"
+                />
+              </label>
             </div>
-            <button
-              style={{ marginRight: "1rem" }}
-              className="replace-btn"
-              onClick={() => handleCalendarSave(calendarId)}
-            >
-              Save
-            </button>
-            <button className="replace-btn" onClick={handleCalendarCancel}>
-              Cancel
-            </button>
+            <div className="modal-btn-row">
+              <button
+                className="modal-btn"
+                onClick={() => handleCalendarSave(calendarId)}
+              >
+                Save
+              </button>
+              <button className="modal-btn" onClick={handleCalendarCancel}>
+                Cancel
+              </button>
+            </div>
           </div>
         </div>
       )}
