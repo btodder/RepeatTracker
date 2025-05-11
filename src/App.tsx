@@ -202,14 +202,7 @@ const App: React.FC = () => {
           margin: "0 auto 2rem auto",
         }}
       >
-        <h1
-          style={{
-            fontSize: "2rem",
-            fontWeight: 700,
-            margin: "1.5rem 0",
-            color: dark ? "#f5f5f5" : "#23272f",
-          }}
-        >
+        <h1 style={{ fontSize: "2rem", fontWeight: 700, margin: "1.5rem 0" }}>
           Replacement Tracker
         </h1>
         <button
@@ -218,7 +211,37 @@ const App: React.FC = () => {
           onClick={() => setDark((d) => !d)}
           style={{ fontSize: "1.5rem" }}
         >
-          {dark ? "🌙" : "☀️"}
+          {/* Black and white sun/moon SVG */}
+          {dark ? (
+            // Moon
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#fff"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79z" />
+            </svg>
+          ) : (
+            // Sun
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#111"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <circle cx="12" cy="12" r="5" />
+              <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+            </svg>
+          )}
         </button>
       </div>
 
@@ -251,9 +274,7 @@ const App: React.FC = () => {
           required
           style={{ width: 80 }}
         />
-        <span style={{ color: dark ? "#f5f5f5" : "#23272f", fontSize: "1rem" }}>
-          days
-        </span>
+        <span style={{ fontSize: "1rem" }}>days</span>
         <select value={category} onChange={(e) => setCategory(e.target.value)}>
           {categories.map((cat) => (
             <option key={cat}>{cat}</option>
@@ -267,11 +288,7 @@ const App: React.FC = () => {
       <div style={{ maxWidth: 700, margin: "0 auto" }}>
         {(sortedItems ?? []).length === 0 && (
           <div
-            style={{
-              color: dark ? "#888" : "#bbb",
-              textAlign: "center",
-              marginTop: "3rem",
-            }}
+            style={{ color: "#bbb", textAlign: "center", marginTop: "3rem" }}
           >
             No items yet. Add something to track!
           </div>
@@ -323,44 +340,65 @@ const App: React.FC = () => {
                           title="Save"
                           onClick={() => handleEditSave(item.id)}
                         >
-                          💾
+                          {/* Black & white floppy disk SVG */}
+                          <svg
+                            width="20"
+                            height="20"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                          >
+                            <rect
+                              x="3"
+                              y="3"
+                              width="18"
+                              height="18"
+                              rx="2"
+                              stroke="currentColor"
+                            />
+                            <path
+                              d="M16 3v4a1 1 0 0 1-1 1h-6a1 1 0 0 1-1-1V3"
+                              stroke="currentColor"
+                            />
+                            <path d="M9 15h6v6H9z" stroke="currentColor" />
+                          </svg>
                         </button>
                         <button
                           className="icon-btn"
                           title="Cancel"
                           onClick={handleEditCancel}
                         >
-                          ❌
+                          {/* Black & white X */}
+                          <svg
+                            width="20"
+                            height="20"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                          >
+                            <line x1="18" y1="6" x2="6" y2="18" />
+                            <line x1="6" y1="6" x2="18" y2="18" />
+                          </svg>
                         </button>
                       </>
                     ) : (
                       <>
-                        <span style={{ fontWeight: 600, fontSize: "1.1rem" }}>
+                        <span
+                          className="task-name"
+                          style={{ fontWeight: 600, fontSize: "1.1rem" }}
+                        >
                           {item.name}
                         </span>
                         {item.category !== "None" && (
-                          <span
-                            style={{
-                              marginLeft: 4,
-                              padding: "2px 8px",
-                              borderRadius: 8,
-                              background: dark ? "#444" : "#eee",
-                              color: dark ? "#f5f5f5" : "#23272f",
-                              fontSize: "0.85rem",
-                            }}
-                          >
-                            {item.category}
-                          </span>
+                          <span className="category">{item.category}</span>
                         )}
                       </>
                     )}
                   </div>
                   <div
-                    style={{
-                      color: dark ? "#ccc" : "#666",
-                      fontSize: "0.97rem",
-                      marginTop: 2,
-                    }}
+                    style={{ color: "#666", fontSize: "0.97rem", marginTop: 2 }}
                   >
                     Replace every <b>{item.replacementInterval}</b> days. Last
                     replaced: {new Date(item.lastReplaced).toLocaleDateString()}
@@ -381,14 +419,7 @@ const App: React.FC = () => {
                     style={{
                       fontWeight: 700,
                       fontSize: "1.1rem",
-                      color:
-                        daysLeft < 0
-                          ? dark
-                            ? "#ff7b7b"
-                            : "#d32f2f"
-                          : dark
-                          ? "#f5f5f5"
-                          : "#23272f",
+                      color: daysLeft < 0 ? "#d32f2f" : "#23272f",
                     }}
                   >
                     {daysLeft < 0 ? (
@@ -403,12 +434,7 @@ const App: React.FC = () => {
                       </span>
                     )}
                   </div>
-                  <div
-                    style={{
-                      color: dark ? "#ccc" : "#666",
-                      fontSize: "0.97rem",
-                    }}
-                  >
+                  <div style={{ color: "#666", fontSize: "0.97rem" }}>
                     Next: {nextDate}
                   </div>
                   <div className="actions-row">
@@ -417,19 +443,34 @@ const App: React.FC = () => {
                         <button
                           className="icon-btn"
                           title="Rename"
-                          aria-label="Edit"
+                          aria-label="Rename"
                           onClick={() => handleEditClick(item.id, item.name)}
                         >
-                          {/* Pencil SVG, black/white */}
+                          {/* Black & white I-beam (text cursor) SVG */}
                           <svg
                             width="20"
                             height="20"
+                            viewBox="0 0 24 24"
                             fill="none"
                             stroke="currentColor"
                             strokeWidth="2"
-                            viewBox="0 0 24 24"
                           >
-                            <path d="M15.232 5.232l3.536 3.536M9 13l6.071-6.071a2 2 0 112.828 2.828L11.828 15.828a4 4 0 01-1.414.943l-4.243 1.414 1.414-4.243a4 4 0 01.943-1.414z" />
+                            <rect
+                              x="9"
+                              y="4"
+                              width="6"
+                              height="16"
+                              rx="2"
+                              stroke="currentColor"
+                              fill="none"
+                            />
+                            <line
+                              x1="12"
+                              y1="4"
+                              x2="12"
+                              y2="20"
+                              stroke="currentColor"
+                            />
                           </svg>
                         </button>
                         <button
@@ -527,14 +568,37 @@ const App: React.FC = () => {
                       title="Save date"
                       onClick={() => handleCalendarSave(item.id)}
                     >
-                      💾
+                      {/* Black & white floppy disk SVG */}
+                      <svg
+                        width="20"
+                        height="20"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                      >
+                        <rect
+                          x="3"
+                          y="3"
+                          width="18"
+                          height="18"
+                          rx="2"
+                          stroke="currentColor"
+                        />
+                        <path
+                          d="M16 3v4a1 1 0 0 1-1 1h-6a1 1 0 0 1-1-1V3"
+                          stroke="currentColor"
+                        />
+                        <path d="M9 15h6v6H9z" stroke="currentColor" />
+                      </svg>
                     </button>
                     <button
-                      className="icon-btn"
+                      className="calendar-cancel-btn"
                       title="Cancel"
+                      type="button"
                       onClick={handleCalendarCancel}
                     >
-                      ❌
+                      Cancel
                     </button>
                   </div>
                 )}

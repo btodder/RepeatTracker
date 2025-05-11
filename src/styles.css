@@ -11,8 +11,8 @@ html {
 
 body.dark-mode,
 html.dark-mode {
-  background: #181818;
-  color: #f5f5f5;
+  background: #000;
+  color: #fff;
 }
 
 .App {
@@ -24,7 +24,7 @@ html.dark-mode {
 .card {
   background: #fff;
   border-radius: 14px;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
   border-left: 4px solid #1a1a1a;
   margin-bottom: 2.5rem;
   padding: 1.5rem 1.5rem 1rem 1.5rem;
@@ -32,9 +32,34 @@ html.dark-mode {
 }
 
 body.dark-mode .card {
-  background: #23272f;
-  color: #f5f5f5;
-  border-left: 4px solid #f5f5f5;
+  background: #181818;
+  color: #fff;
+  border-left: 4px solid #fff;
+}
+
+/* Task name and category text */
+.card .task-name,
+.card .category {
+  color: #23272f;
+  transition: color 0.3s;
+}
+
+body.dark-mode .card .task-name,
+body.dark-mode .card .category {
+  color: #fff;
+}
+
+/* Category pill */
+.card .category {
+  margin-left: 4px;
+  padding: 2px 8px;
+  border-radius: 8px;
+  background: #eee;
+  font-size: 0.85rem;
+}
+
+body.dark-mode .card .category {
+  background: #333;
 }
 
 /* Action buttons row */
@@ -47,7 +72,7 @@ body.dark-mode .card {
   margin-top: 1rem;
 }
 
-/* Icon buttons (edit, calendar) */
+/* Icon buttons (edit, calendar, save) */
 .icon-btn {
   height: 2.5rem;
   width: 2.5rem;
@@ -59,12 +84,11 @@ body.dark-mode .card {
   border-radius: 7px;
   font-size: 1.35rem;
   color: #23272f;
-  filter: grayscale(1);
   transition: background 0.2s, color 0.2s, border 0.2s;
 }
 
 body.dark-mode .icon-btn {
-  color: #f5f5f5;
+  color: #fff;
   background: transparent;
 }
 
@@ -77,7 +101,7 @@ body.dark-mode .icon-btn {
 
 body.dark-mode .icon-btn:hover,
 body.dark-mode .icon-btn:focus {
-  background: #333;
+  background: #222;
   color: #fff;
 }
 
@@ -99,8 +123,8 @@ body.dark-mode .icon-btn:focus {
 }
 
 body.dark-mode .replace-btn {
-  background: #333;
-  color: #f5f5f5;
+  background: #222;
+  color: #fff;
 }
 
 .replace-btn:hover,
@@ -112,7 +136,7 @@ body.dark-mode .replace-btn {
 
 body.dark-mode .replace-btn:hover,
 body.dark-mode .replace-btn:focus {
-  background: #444;
+  background: #333;
   color: #fff;
 }
 
@@ -132,8 +156,8 @@ body.dark-mode .replace-btn:focus {
 }
 
 body.dark-mode .delete-btn {
-  border: 2px solid #f5f5f5;
-  color: #f5f5f5;
+  border: 2px solid #fff;
+  color: #fff;
 }
 
 .delete-btn:hover,
@@ -145,7 +169,7 @@ body.dark-mode .delete-btn {
 
 body.dark-mode .delete-btn:hover,
 body.dark-mode .delete-btn:focus {
-  background: #f5f5f5;
+  background: #fff;
   color: #111;
 }
 
@@ -164,9 +188,9 @@ select {
 
 body.dark-mode input,
 body.dark-mode select {
-  background: #23272f;
+  background: #181818;
   border-color: #555;
-  color: #f5f5f5;
+  color: #fff;
 }
 
 input:focus,
@@ -194,7 +218,7 @@ body.dark-mode hr {
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.45);
+  background: rgba(0, 0, 0, 0.45);
   z-index: 1000;
   display: flex;
   align-items: center;
@@ -208,12 +232,40 @@ body.dark-mode hr {
   padding: 2rem 1.5rem;
   min-width: 300px;
   max-width: 90vw;
-  box-shadow: 0 2px 24px rgba(0,0,0,0.18);
+  box-shadow: 0 2px 24px rgba(0, 0, 0, 0.18);
   text-align: center;
 }
 
 body.dark-mode .modal-content {
-  background: #23272f;
-  color: #f5f5f5;
-  box-shadow: 0 2px 24px rgba(0,0,0,0.45);
+  background: #181818;
+  color: #fff;
+  box-shadow: 0 2px 24px rgba(0, 0, 0, 0.45);
+}
+
+/* Calendar cancel button */
+.calendar-cancel-btn {
+  background: none;
+  border: none;
+  color: #23272f;
+  font-size: 1rem;
+  padding: 0.5rem 1rem;
+  border-radius: 7px;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+body.dark-mode .calendar-cancel-btn {
+  color: #fff;
+}
+
+.calendar-cancel-btn:hover,
+.calendar-cancel-btn:focus {
+  background: #ededed;
+  color: #111;
+}
+
+body.dark-mode .calendar-cancel-btn:hover,
+body.dark-mode .calendar-cancel-btn:focus {
+  background: #222;
+  color: #fff;
 }
