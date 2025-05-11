@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import useLocalStorage from "use-local-storage";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 
@@ -12,18 +12,23 @@ type Item = {
 
 const categories = ["Hygiene", "Expiration", "Performance", "None"];
 
-// Dark mode hook
+// Dark mode hook with localStorage
 function useDarkMode() {
-  const [dark, setDark] = useState(
-    () =>
+  const [dark, setDark] = useState(() => {
+    const ls = localStorage.getItem("dark-mode");
+    if (ls !== null) return ls === "true";
+    return (
       window.matchMedia &&
       window.matchMedia("(prefers-color-scheme: dark)").matches
-  );
+    );
+  });
   useEffect(() => {
     if (dark) {
       document.body.classList.add("dark-mode");
+      localStorage.setItem("dark-mode", "true");
     } else {
       document.body.classList.remove("dark-mode");
+      localStorage.setItem("dark-mode", "false");
     }
   }, [dark]);
   return [dark, setDark] as const;
@@ -63,12 +68,15 @@ const App: React.FC = () => {
   // Dark mode
   const [dark, setDark] = useDarkMode();
 
+  // For click-outside cancel on rename
+  const editInputRef = useRef<HTMLInputElement | null>(null);
+
   // Add new item
   const handleAdd = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
     setItems([
-      ...items,
+      ...(items ?? []),
       {
         id: Date.now(),
         name: name.trim(),
@@ -85,7 +93,7 @@ const App: React.FC = () => {
   // Replace now
   const handleReplace = (id: number) => {
     setItems(
-      items.map((item) =>
+      (items ?? []).map((item) =>
         item.id === id
           ? { ...item, lastReplaced: new Date().toISOString() }
           : item
@@ -95,7 +103,7 @@ const App: React.FC = () => {
 
   // Delete item (after confirmation)
   const handleDelete = (id: number) => {
-    setItems(items.filter((item) => item.id !== id));
+    setItems((items ?? []).filter((item) => item.id !== id));
     setDeleteId(null);
   };
 
@@ -111,7 +119,7 @@ const App: React.FC = () => {
 
   const handleEditSave = (id: number) => {
     if (editName.trim() === "") return;
-    setItems((items) =>
+    setItems(
       (items ?? []).map((item) =>
         item.id === id ? { ...item, name: editName } : item
       )
@@ -124,6 +132,22 @@ const App: React.FC = () => {
     setEditingId(null);
     setEditName("");
   };
+
+  // Click outside to cancel rename
+  useEffect(() => {
+    if (editingId === null) return;
+    function handleClick(e: MouseEvent) {
+      if (
+        editInputRef.current &&
+        !editInputRef.current.contains(e.target as Node)
+      ) {
+        handleEditCancel();
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+    // eslint-disable-next-line
+  }, [editingId]);
 
   // Calendar button logic
   const handleCalendarClick = (
@@ -143,7 +167,7 @@ const App: React.FC = () => {
     setCalendarLastDate(e.target.value);
     // Update next replacement date to match new last replaced + interval
     if (calendarId !== null) {
-      const item = items.find((i) => i.id === calendarId);
+      const item = (items ?? []).find((i) => i.id === calendarId);
       if (item) {
         const last = new Date(e.target.value);
         last.setDate(last.getDate() + item.replacementInterval);
@@ -156,7 +180,7 @@ const App: React.FC = () => {
     setCalendarNextDate(e.target.value);
     // Update last replaced date so that last + interval = next
     if (calendarId !== null) {
-      const item = items.find((i) => i.id === calendarId);
+      const item = (items ?? []).find((i) => i.id === calendarId);
       if (item) {
         const next = new Date(e.target.value);
         next.setDate(next.getDate() - item.replacementInterval);
@@ -166,7 +190,7 @@ const App: React.FC = () => {
   };
 
   const handleCalendarSave = (id: number) => {
-    setItems((items) =>
+    setItems(
       (items ?? []).map((item) =>
         item.id === id
           ? { ...item, lastReplaced: new Date(calendarLastDate).toISOString() }
@@ -219,7 +243,7 @@ const App: React.FC = () => {
               height="24"
               viewBox="0 0 24 24"
               fill="none"
-              stroke="#fff"
+              stroke="currentColor"
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -233,7 +257,7 @@ const App: React.FC = () => {
               height="24"
               viewBox="0 0 24 24"
               fill="none"
-              stroke="#111"
+              stroke="currentColor"
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -272,9 +296,8 @@ const App: React.FC = () => {
           value={interval}
           onChange={(e) => setInterval(Number(e.target.value))}
           required
-          style={{ width: 80 }}
+          placeholder="days"
         />
-        <span style={{ fontSize: "1rem" }}>days</span>
         <select value={category} onChange={(e) => setCategory(e.target.value)}>
           {categories.map((cat) => (
             <option key={cat}>{cat}</option>
@@ -287,9 +310,7 @@ const App: React.FC = () => {
 
       <div style={{ maxWidth: 700, margin: "0 auto" }}>
         {(sortedItems ?? []).length === 0 && (
-          <div
-            style={{ color: "#bbb", textAlign: "center", marginTop: "3rem" }}
-          >
+          <div style={{ textAlign: "center", marginTop: "3rem" }}>
             No items yet. Add something to track!
           </div>
         )}
@@ -326,12 +347,14 @@ const App: React.FC = () => {
                     {editingId === item.id ? (
                       <>
                         <input
+                          ref={editInputRef}
                           value={editName}
                           onChange={handleEditChange}
                           autoFocus
+                          placeholder="Rename item"
+                          onBlur={handleEditCancel}
                           onKeyDown={(e) => {
                             if (e.key === "Enter") handleEditSave(item.id);
-                            if (e.key === "Escape") handleEditCancel();
                           }}
                           style={{ fontSize: "1.1rem", minWidth: 120 }}
                         />
@@ -364,24 +387,6 @@ const App: React.FC = () => {
                             <path d="M9 15h6v6H9z" stroke="currentColor" />
                           </svg>
                         </button>
-                        <button
-                          className="icon-btn"
-                          title="Cancel"
-                          onClick={handleEditCancel}
-                        >
-                          {/* Black & white X */}
-                          <svg
-                            width="20"
-                            height="20"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                          >
-                            <line x1="18" y1="6" x2="6" y2="18" />
-                            <line x1="6" y1="6" x2="18" y2="18" />
-                          </svg>
-                        </button>
                       </>
                     ) : (
                       <>
@@ -397,9 +402,7 @@ const App: React.FC = () => {
                       </>
                     )}
                   </div>
-                  <div
-                    style={{ color: "#666", fontSize: "0.97rem", marginTop: 2 }}
-                  >
+                  <div className="text-muted">
                     Replace every <b>{item.replacementInterval}</b> days. Last
                     replaced: {new Date(item.lastReplaced).toLocaleDateString()}
                   </div>
@@ -415,13 +418,7 @@ const App: React.FC = () => {
                     marginTop: "1.1rem",
                   }}
                 >
-                  <div
-                    style={{
-                      fontWeight: 700,
-                      fontSize: "1.1rem",
-                      color: daysLeft < 0 ? "#d32f2f" : "#23272f",
-                    }}
-                  >
+                  <div className={daysLeft < 0 ? "overdue" : "normal"}>
                     {daysLeft < 0 ? (
                       <span>Overdue by {Math.abs(daysLeft)} days</span>
                     ) : (
@@ -434,9 +431,7 @@ const App: React.FC = () => {
                       </span>
                     )}
                   </div>
-                  <div style={{ color: "#666", fontSize: "0.97rem" }}>
-                    Next: {nextDate}
-                  </div>
+                  <div className="text-muted">Next: {nextDate}</div>
                   <div className="actions-row">
                     {editingId !== item.id && (
                       <>
@@ -516,7 +511,6 @@ const App: React.FC = () => {
                     )}
                   </div>
                 </div>
-
                 {/* Calendar date picker inline */}
                 {calendarId === item.id && (
                   <div
@@ -626,19 +620,13 @@ const App: React.FC = () => {
               style={{ display: "flex", gap: "1rem", justifyContent: "center" }}
             >
               <button
-                className="replace-btn"
-                style={{ background: "#ededed", color: "#23272f" }}
+                className="replace-btn normal"
                 onClick={() => setDeleteId(null)}
               >
                 Cancel
               </button>
               <button
                 className="delete-btn"
-                style={{
-                  background: "#111",
-                  color: "#fff",
-                  borderColor: "#111",
-                }}
                 onClick={() => handleDelete(deleteId)}
               >
                 ×
@@ -652,5 +640,3 @@ const App: React.FC = () => {
     </div>
   );
 };
-
-export default App;

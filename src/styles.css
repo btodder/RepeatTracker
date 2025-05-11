@@ -1,18 +1,46 @@
+:root {
+  --color-background: #fafafa;
+  --color-card: #fff;
+  --color-border: #1a1a1a;
+  --color-text: #23272f;
+  --color-text-muted: #666;
+  --color-category-bg: #eee;
+  --color-btn-bg: #ededed;
+  --color-btn-bg-hover: #bdbdbd;
+  --color-btn-text: #23272f;
+  --color-btn-border: #111;
+  --color-danger: #d32f2f;
+  --color-modal-bg: #fff;
+  --color-modal-text: #23272f;
+  --color-hr: #bbb;
+}
+
+body.dark-mode {
+  --color-background: #000;
+  --color-card: #181818;
+  --color-border: #fff;
+  --color-text: #fff;
+  --color-text-muted: #bbb;
+  --color-category-bg: #333;
+  --color-btn-bg: #222;
+  --color-btn-bg-hover: #333;
+  --color-btn-text: #fff;
+  --color-btn-border: #fff;
+  --color-danger: #ff7b7b;
+  --color-modal-bg: #181818;
+  --color-modal-text: #fff;
+  --color-hr: #444;
+}
+
 body,
 html {
   min-height: 100vh;
   margin: 0;
   padding: 0;
   font-family: sans-serif;
-  background: #fafafa;
-  color: #23272f;
+  background: var(--color-background);
+  color: var(--color-text);
   transition: background 0.3s, color 0.3s;
-}
-
-body.dark-mode,
-html.dark-mode {
-  background: #000;
-  color: #fff;
 }
 
 .App {
@@ -22,44 +50,50 @@ html.dark-mode {
 
 /* Card styles */
 .card {
-  background: #fff;
+  background: var(--color-card);
   border-radius: 14px;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
-  border-left: 4px solid #1a1a1a;
+  border-left: 4px solid var(--color-border);
   margin-bottom: 2.5rem;
   padding: 1.5rem 1.5rem 1rem 1.5rem;
   transition: background 0.3s, color 0.3s;
-}
-
-body.dark-mode .card {
-  background: #181818;
-  color: #fff;
-  border-left: 4px solid #fff;
+  color: var(--color-text);
 }
 
 /* Task name and category text */
-.card .task-name,
-.card .category {
-  color: #23272f;
-  transition: color 0.3s;
+.card .task-name {
+  color: var(--color-text);
+  font-weight: 600;
+  font-size: 1.1rem;
 }
 
-body.dark-mode .card .task-name,
-body.dark-mode .card .category {
-  color: #fff;
-}
-
-/* Category pill */
 .card .category {
+  color: var(--color-text);
   margin-left: 4px;
   padding: 2px 8px;
   border-radius: 8px;
-  background: #eee;
+  background: var(--color-category-bg);
   font-size: 0.85rem;
 }
 
-body.dark-mode .card .category {
-  background: #333;
+/* Muted text for descriptions */
+.text-muted {
+  color: var(--color-text-muted);
+  font-size: 0.97rem;
+  margin-top: 2px;
+}
+
+/* Status coloring */
+.overdue {
+  color: var(--color-danger);
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.normal {
+  color: var(--color-text);
+  font-weight: 700;
+  font-size: 1.1rem;
 }
 
 /* Action buttons row */
@@ -83,26 +117,26 @@ body.dark-mode .card .category {
   border: none;
   border-radius: 7px;
   font-size: 1.35rem;
-  color: #23272f;
+  color: var(--color-text);
   transition: background 0.2s, color 0.2s, border 0.2s;
 }
 
 body.dark-mode .icon-btn {
-  color: #fff;
+  color: var(--color-btn-text);
   background: transparent;
 }
 
 .icon-btn:hover,
 .icon-btn:focus {
-  background: #ededed;
-  color: #111;
+  background: var(--color-btn-bg);
+  color: var(--color-btn-border);
   outline: none;
 }
 
 body.dark-mode .icon-btn:hover,
 body.dark-mode .icon-btn:focus {
-  background: #222;
-  color: #fff;
+  background: var(--color-btn-bg-hover);
+  color: var(--color-btn-text);
 }
 
 /* Replace button styled as icon button */
@@ -111,8 +145,8 @@ body.dark-mode .icon-btn:focus {
   min-width: 2.5rem;
   padding: 0 1.1rem;
   border-radius: 7px;
-  background: #ededed;
-  color: #23272f;
+  background: var(--color-btn-bg);
+  color: var(--color-btn-text);
   font-weight: 600;
   border: none;
   font-size: 1rem;
@@ -123,109 +157,19 @@ body.dark-mode .icon-btn:focus {
 }
 
 body.dark-mode .replace-btn {
-  background: #222;
-  color: #fff;
+  background: var(--color-btn-bg);
+  color: var(--color-btn-text);
 }
 
 .replace-btn:hover,
 .replace-btn:focus {
-  background: #bdbdbd;
-  color: #111;
+  background: var(--color-btn-bg-hover);
+  color: var(--color-btn-border);
   outline: none;
 }
 
 body.dark-mode .replace-btn:hover,
-body.dark-mode .replace-btn:focus {
-  background: #333;
-  color: #fff;
-}
-
-/* Delete button: black X in black rectangle */
-.delete-btn {
-  height: 2.5rem;
-  width: 2.5rem;
-  border: 2px solid #111;
-  background: transparent;
-  color: #111;
-  border-radius: 7px;
-  font-size: 1.3rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background 0.2s, color 0.2s, border 0.2s;
-}
-
-body.dark-mode .delete-btn {
-  border: 2px solid #fff;
-  color: #fff;
-}
-
-.delete-btn:hover,
-.delete-btn:focus {
-  background: #111;
-  color: #fff;
-  outline: none;
-}
-
-body.dark-mode .delete-btn:hover,
-body.dark-mode .delete-btn:focus {
-  background: #fff;
-  color: #111;
-}
-
-/* Inputs and selects */
-input,
-select {
-  border-radius: 7px;
-  border: 1px solid #ccc;
-  padding: 0.5rem 0.7rem;
-  font-size: 1rem;
-  transition: border-color 0.2s;
-  font-family: inherit;
-  background: #fff;
-  color: #23272f;
-}
-
-body.dark-mode input,
-body.dark-mode select {
-  background: #181818;
-  border-color: #555;
-  color: #fff;
-}
-
-input:focus,
-select:focus {
-  border-color: #1a73e8;
-  outline: none;
-}
-
-body.dark-mode input:focus,
-body.dark-mode select:focus {
-  border-color: #8ab4f8;
-}
-
-hr {
-  border: none;
-  border-top: 1px solid #bbb;
-  margin: 2rem 0;
-}
-
-body.dark-mode hr {
-  border-top-color: #444;
-}
-
-/* Modal overlay */
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.45);
-  z-index: 1000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.modal-content {
+body.dark .modal-content {
   background: #fff;
   color: #23272f;
   border-radius: 10px;
@@ -246,16 +190,12 @@ body.dark-mode .modal-content {
 .calendar-cancel-btn {
   background: none;
   border: none;
-  color: #23272f;
+  color: inherit;
   font-size: 1rem;
   padding: 0.5rem 1rem;
   border-radius: 7px;
   cursor: pointer;
   transition: background 0.2s, color 0.2s;
-}
-
-body.dark-mode .calendar-cancel-btn {
-  color: #fff;
 }
 
 .calendar-cancel-btn:hover,
