@@ -49,7 +49,26 @@ function calculateNextDate(lastReplaced: string, interval: number) {
   return last.toLocaleDateString();
 }
 
+// ==================
+// DARK MODE TOGGLE BUTTON USAGE EXAMPLE
+// ==================
+
+// Add this inside your App component (not inside a loop or conditional):
+/*
+const [dark, setDark] = useDarkMode();
+
+return (
+  <div>
+    <button onClick={() => setDark((v) => !v)}>
+      {dark ? "Switch to Light Mode" : "Switch to Dark Mode"}
+    </button>
+    // ...rest of your app content
+  </div>
+);
+*/
+
 const App: React.FC = () => {
+  const [dark, setDark] = useDarkMode();
   const [items, setItems] = useLocalStorage<Item[]>("replacement-items", []);
   const [name, setName] = useState("");
   const [interval, setInterval] = useState(30);

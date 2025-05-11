@@ -30,6 +30,10 @@ body.dark-mode {
   --color-modal-bg: #181818;
   --color-modal-text: #fff;
   --color-hr: #444;
+
+  /* Fallback for background and text color in dark mode */
+  background: #000 !important;
+  color: #fff !important;
 }
 
 body,
@@ -168,8 +172,19 @@ body.dark-mode .replace-btn {
   outline: none;
 }
 
-body.dark-mode .replace-btn:hover,
-body.dark .modal-content {
+/* FIXED: typo here, was body.dark .modal-content */
+body.dark-mode .modal-content {
+  background: #181818;
+  color: #fff;
+  box-shadow: 0 2px 24px rgba(0, 0, 0, 0.45);
+  border-radius: 10px;
+  padding: 2rem 1.5rem;
+  min-width: 300px;
+  max-width: 90vw;
+  text-align: center;
+}
+
+.modal-content {
   background: #fff;
   color: #23272f;
   border-radius: 10px;
@@ -178,12 +193,6 @@ body.dark .modal-content {
   max-width: 90vw;
   box-shadow: 0 2px 24px rgba(0, 0, 0, 0.18);
   text-align: center;
-}
-
-body.dark-mode .modal-content {
-  background: #181818;
-  color: #fff;
-  box-shadow: 0 2px 24px rgba(0, 0, 0, 0.45);
 }
 
 /* Calendar cancel button */
